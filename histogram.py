@@ -16,9 +16,8 @@ def main():
         Slytherin = df[df.loc[:,"Hogwarts House"] == "Slytherin"].select_dtypes(include=['int64','float64'])
         Hufflepuff = df[df.loc[:,"Hogwarts House"] == "Hufflepuff"].select_dtypes(include=['int64','float64'])
         col_names = df.select_dtypes(include=['int64','float64']).columns
-        nb_col_graph = 3
+        nb_col_graph = 5
         nb_lignes_graph = int(len(col_names)/nb_col_graph) + 1
-        plt.figure(figsize=(nb_col_graph * 5, nb_lignes_graph * 5))
         for i in range(len(col_names)):
             plt.subplot(nb_lignes_graph, nb_col_graph, i + 1)
             plt.title(col_names[i])
