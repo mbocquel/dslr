@@ -4,8 +4,7 @@ from sys import argv
 
 def main():
     """
-    Program that uses Machine Learning to find the corect
-    parameters for a linear regression.
+    Program that describe a dataset.
     """
     try:
         assert len(argv) == 2, "You need to pass your data file as argument"
