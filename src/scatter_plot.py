@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def scatter(sujet, Ravenclaw, Hufflepuff, Slytherin, Gryffindor, col_names, nb_col_graph):
     print("     \033[32mShowing you the scatter plot for", sujet, "\033[0m")
     nb_lignes_graph = int((len(col_names)- 1)/nb_col_graph) + 1
-    plt.figure(figsize=(nb_col_graph * 7, nb_lignes_graph * 7))
+    plt.figure(figsize=(nb_col_graph * 10, nb_lignes_graph * 10))
     j = 0
     for i in range(len(col_names)):
         if (col_names[i] != sujet):
@@ -20,6 +20,9 @@ def scatter(sujet, Ravenclaw, Hufflepuff, Slytherin, Gryffindor, col_names, nb_c
             plt.ylabel(col_names[i])
             plt.legend()
             j += 1
+    plt.subplots_adjust(wspace=0.4, hspace=0.4)
+    manager = plt.get_current_fig_manager()
+    manager.set_window_title("Scatter plot for " + sujet)
     plt.show()
 
 
@@ -54,6 +57,7 @@ def main():
         nb_col_graph = 5
         showPossibilites(col_names)
         userMainFeature = testParamsAreOk(input("Please enter the number of the feature to compare, or 0 to quit: "), col_names)
+        plt.rcParams.update({'font.size': 8})
         while (1):
             if (userMainFeature is None):
                 print("     \033[31mPlease enter a correct number\033[0m")

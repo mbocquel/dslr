@@ -26,6 +26,8 @@ def main():
             plt.hist(Slytherin.loc[:,col_names[i]], alpha = 0.5, lw=3, label="Slytherin", color="g")
             plt.hist(Gryffindor.loc[:,col_names[i]], alpha = 0.5, lw=3, label="Gryffindor", color="r")
             plt.legend()
+        manager = plt.get_current_fig_manager()
+        manager.set_window_title("Histogram")
         plt.show()
         return 0
     except AssertionError as msg:
