@@ -78,7 +78,7 @@ def updateWb(X, y, w, b, lambda_, alpha):
         z_ravenclaw = np.dot(X.iloc[i].values, w_ravenclaw) + b_ravenclaw
         f_wb_i_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
         err_i_ravenclaw  = f_wb_i_ravenclaw  - y_ravenclaw[i]
-        
+
         z_gryffindor = np.dot(X.iloc[i].values, w_gryffindor) + b_gryffindor
         f_wb_i_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
         err_i_gryffindor  = f_wb_i_gryffindor  - y_gryffindor[i]
@@ -92,12 +92,12 @@ def updateWb(X, y, w, b, lambda_, alpha):
             dj_dw[1][j] = dj_dw[1][j] + err_i_ravenclaw * X.iloc[i,j].item()
             dj_dw[2][j] = dj_dw[2][j] + err_i_gryffindor * X.iloc[i,j].item()
             dj_dw[3][j] = dj_dw[3][j] + err_i_hufflepuff * X.iloc[i,j].item()
-        
+
         dj_db[0] = dj_db[0] + err_i_slytherin
         dj_db[1] = dj_db[1] + err_i_ravenclaw
         dj_db[2] = dj_db[2] + err_i_gryffindor
         dj_db[3] = dj_db[3] + err_i_hufflepuff
-        
+
     dj_dw =  dj_dw/m
     dj_db = dj_db/m
 
@@ -107,7 +107,7 @@ def updateWb(X, y, w, b, lambda_, alpha):
         dj_dw.loc["Ravenclaw", col_name] = dj_dw.loc["Ravenclaw", col_name].item() + (lambda_/m) * w.loc["Ravenclaw", col_name].item()
         dj_dw.loc["Gryffindor", col_name] = dj_dw.loc["Gryffindor", col_name].item() + (lambda_/m) * w.loc["Gryffindor", col_name].item()
         dj_dw.loc["Hufflepuff", col_name] = dj_dw.loc["Hufflepuff", col_name].item() + (lambda_/m) * w.loc["Hufflepuff", col_name].item()
-    
+
     W_updated = w - alpha * dj_dw
     b_updated = b - alpha * dj_db
     return (W_updated, b_updated)
@@ -118,7 +118,7 @@ def executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iterations):
     w = [np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)]
     # w  = pd.DataFrame(columns=X.columns,
     #                  index=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"], data=0)
-    # 
+    #
     b = [0, 0, 0, 0]
     # b = pd.DataFrame(columns=["b"],
     #                  index=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"], data=0)
@@ -153,9 +153,9 @@ def logreg(df):
     hufflepuff_df.drop("Hogwarts House", axis=1, inplace=True)
 
     X = slytherin_df.iloc[:, :len(slytherin_df.columns)-1]
-    y = [slytherin_df.iloc[:, len(slytherin_df.columns)-1:].to_numpy(), 
-         ravenclaw_df.iloc[:, len(ravenclaw_df.columns)-1:].to_numpy(), 
-         gryffindor_df.iloc[:, len(gryffindor_df.columns)-1:].to_numpy(), 
+    y = [slytherin_df.iloc[:, len(slytherin_df.columns)-1:].to_numpy(),
+         ravenclaw_df.iloc[:, len(ravenclaw_df.columns)-1:].to_numpy(),
+         gryffindor_df.iloc[:, len(gryffindor_df.columns)-1:].to_numpy(),
          hufflepuff_df.iloc[:, len(hufflepuff_df.columns)-1:].to_numpy()]
     # y_slytherin = slytherin_df.iloc[:, len(slytherin_df.columns)-1:]
     # y_ravenclaw = ravenclaw_df.iloc[:, len(ravenclaw_df.columns)-1:]
@@ -197,7 +197,7 @@ def main():
         df_Normilised.drop("Astronomy", axis=1, inplace=True)
 
         # On execute le resultat de l'algo
-        
+
         w, b = logreg(df_Normilised.copy())
         # print("...done")
         # print("Computing for Ravenclaw ...")
