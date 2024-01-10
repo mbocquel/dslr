@@ -204,7 +204,6 @@ def main():
         # On execute le resultat de l'algo
         print("Computing ...")
         w, b, result = logreg(df_Normilised, 0.1, 1, 200)
-        result_sly, result_rav, result_gryf, result_huf = result
         
         # Enregistrement
         params = stats.copy()
