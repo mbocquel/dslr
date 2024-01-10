@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 from sys import argv
 
 
@@ -58,52 +59,121 @@ def computeCost(X, y, W, b, lambda_ = 1):
     return cost
 
 
-def updateWb(X, y, w, b, lambda_, alpha):
-    m, n = X.shape
-    dj_dw = np.zeros((n,))
-    dj_db = 0.0
+def updateWb(X_slytherin, y_slytherin,
+            X_ravenclaw, y_ravenclaw,
+            X_gryffindor, y_gryffindor,
+            X_hufflepuff, y_hufflepuff,
+            w, b, lambda_, alpha):
+    m, n = X_slytherin.shape
+    dj_dw = pd.DataFrame(columns=X_slytherin.columns,
+                     index=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"], data=0)
+    dj_db = pd.DataFrame(columns=["b"],
+                     index=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"], data=0)
     for i in range(m):
-        z = np.dot(X.iloc[i].values, w) + b
-        f_wb_i = 1 / (1 + np.exp(-z))
-        err_i  = f_wb_i  - y.iloc[i].item()
+        z_slytherin = np.dot(X_slytherin.iloc[i].values, w.loc["Slytherin", :].values) + b.loc["Slytherin", "b"].item()
+        f_wb_i_slytherin = 1 / (1 + np.exp(-z_slytherin))
+        err_i_slytherin  = f_wb_i_slytherin  - y_slytherin.iloc[i].item()
+
+        z_ravenclaw = np.dot(X_ravenclaw.iloc[i].values, w.loc["Ravenclaw", :].values) + b.loc["Ravenclaw", "b"].item()
+        f_wb_i_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
+        err_i_ravenclaw  = f_wb_i_ravenclaw  - y_ravenclaw.iloc[i].item()
+        
+        z_gryffindor = np.dot(X_gryffindor.iloc[i].values, w.loc["Gryffindor", :].values) + b.loc["Gryffindor", "b"].item()
+        f_wb_i_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
+        err_i_gryffindor  = f_wb_i_gryffindor  - y_gryffindor.iloc[i].item()
+
+        z_hufflepuff = np.dot(X_hufflepuff.iloc[i].values, w.loc["Hufflepuff", :].values) + b.loc["Hufflepuff", "b"].item()
+        f_wb_i_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
+        err_i_hufflepuff = f_wb_i_hufflepuff  - y_hufflepuff.iloc[i].item()
+
+        # f_wb_i = 1 / (1 + np.exp(-z))
+        # err_i  = f_wb_i  - y.iloc[i].item()
         for j in range(n):
-            dj_dw[j] = dj_dw[j] + err_i * X.iloc[i,j].item()
-        dj_db = dj_db + err_i
-    dj_dw = dj_dw/m
+            col_name = X_slytherin.columns[j]
+            dj_dw.loc["Slytherin", col_name] = dj_dw.loc["Slytherin", col_name] + err_i_slytherin * X_slytherin.iloc[i,j].item()
+            dj_dw.loc["Ravenclaw", col_name] = dj_dw.loc["Ravenclaw", col_name] + err_i_ravenclaw * X_ravenclaw.iloc[i,j].item()
+            dj_dw.loc["Gryffindor", col_name] = dj_dw.loc["Gryffindor", col_name] + err_i_gryffindor * X_gryffindor.iloc[i,j].item()
+            dj_dw.loc["Hufflepuff", col_name] = dj_dw.loc["Hufflepuff", col_name] + err_i_hufflepuff * X_hufflepuff.iloc[i,j].item()
+        
+        dj_db.loc["Slytherin", "b"] = dj_db.loc["Slytherin", "b"] + err_i_slytherin
+        dj_db.loc["Ravenclaw", "b"] = dj_db.loc["Ravenclaw", "b"] + err_i_ravenclaw
+        dj_db.loc["Gryffindor", "b"] = dj_db.loc["Gryffindor", "b"] + err_i_gryffindor
+        dj_db.loc["Hufflepuff", "b"] = dj_db.loc["Hufflepuff", "b"] + err_i_hufflepuff
+        
+    dj_dw =  dj_dw/m
     dj_db = dj_db/m
+
     for j in range(n):
-        dj_dw[j] = dj_dw[j] + (lambda_/m) * w[j]
+        col_name = X_slytherin.columns[j]
+        dj_dw.loc["Slytherin", col_name] = dj_dw.loc["Slytherin", col_name] + (lambda_/m) * w.loc["Slytherin", col_name]
+        dj_dw.loc["Ravenclaw", col_name] = dj_dw.loc["Ravenclaw", col_name] + (lambda_/m) * w.loc["Ravenclaw", col_name]
+        dj_dw.loc["Gryffindor", col_name] = dj_dw.loc["Gryffindor", col_name] + (lambda_/m) * w.loc["Gryffindor", col_name]
+        dj_dw.loc["Hufflepuff", col_name] = dj_dw.loc["Hufflepuff", col_name] + (lambda_/m) * w.loc["Hufflepuff", col_name]
+    
     W_updated = w - alpha * dj_dw
     b_updated = b - alpha * dj_db
     return (W_updated, b_updated)
 
 
-def executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iter):
-    m, n = X.shape
-    w = np.zeros(n)
-    b = 0
-    result = []
-    for i in range(nb_iter):
-        w, b = updateWb(X, y, w, b, lambda_, alpha)
-        result.append(computeCost(X, y, w, b, lambda_))
-    return(w, b, result)
+def executeGradientDescentAlgo(X_slytherin, y_slytherin, 
+                                X_ravenclaw, y_ravenclaw, 
+                                X_gryffindor, y_gryffindor,
+                                X_hufflepuff, y_hufflepuff,
+                                alpha, lambda_, nb_iterations):
+    w = pd.DataFrame(columns=X_slytherin.columns,
+                     index=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"], data=0)
+    b = pd.DataFrame(columns=["b"],
+                     index=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"], data=0)
+    result = pd.DataFrame(columns=["Slytherin", "Ravenclaw", "Gryffindor", "Hufflepuff"])
+    for i in tqdm(range(nb_iterations)):
+        w, b = updateWb(X_slytherin, y_slytherin,
+                        X_ravenclaw, y_ravenclaw,
+                        X_gryffindor, y_gryffindor,
+                        X_hufflepuff, y_hufflepuff,
+                        w, b, lambda_, alpha)
+        # result.append(computeCost(X, y, w, b, lambda_))
+    return(w, b)
 
 
 def logreg(df, house_name):
-    df.loc[:,"Hogwarts House"] == house_name
-    # df.loc[df.loc[:,"Hogwarts House"] == house_name, :]
-    df.loc[df.loc[:,"Hogwarts House"] == house_name, "Test" + house_name] = 1
-    df.loc[~(df.loc[:,"Hogwarts House"] == house_name), "Test" + house_name] = 0
-    df.drop("Hogwarts House", axis=1, inplace=True)
-    # df.drop("Astronomy", axis=1, inplace=True)
+    # On supprime les valeurs NaN
     for i in range(len(df.columns)):
         df = df.loc[~df.isna()[df.columns[i]], :]
-    X = df.iloc[:, :len(df.columns)-1]
-    y = df.iloc[:, len(df.columns)-1:]
+
+    # On ajoute les test
+    slytherin_df = df.copy()
+    slytherin_df.loc[:, "Test Slytherin"] = 0
+    slytherin_df.loc[df.loc[:,"Hogwarts House"] == "Slytherin", "Test Slytherin"] = 1
+    ravenclaw_df= df.copy()
+    ravenclaw_df.loc[:, "Test Ravenclaw"] = 0
+    ravenclaw_df.loc[df.loc[:,"Hogwarts House"] == "Ravenclaw", "Test Ravenclaw"] = 1
+    gryffindor_df= df.copy()
+    gryffindor_df.loc[:, "Test Gryffindor"] = 0
+    gryffindor_df.loc[df.loc[:,"Hogwarts House"] == "Gryffindor", "Test Gryffindor"] = 1
+    hufflepuff_df= df.copy()
+    hufflepuff_df.loc[:, "Test Hufflepuff"] = 0
+    hufflepuff_df.loc[df.loc[:,"Hogwarts House"] == "Hufflepuff", "Test Hufflepuff"] = 1
+    slytherin_df.drop("Hogwarts House", axis=1, inplace=True)
+    ravenclaw_df.drop("Hogwarts House", axis=1, inplace=True)
+    gryffindor_df.drop("Hogwarts House", axis=1, inplace=True)
+    hufflepuff_df.drop("Hogwarts House", axis=1, inplace=True)
+
+    X_slytherin = slytherin_df.iloc[:, :len(slytherin_df.columns)-1]
+    y_slytherin = slytherin_df.iloc[:, len(slytherin_df.columns)-1:]
+    X_ravenclaw = ravenclaw_df.iloc[:, :len(ravenclaw_df.columns)-1]
+    y_ravenclaw = ravenclaw_df.iloc[:, len(ravenclaw_df.columns)-1:]
+    X_gryffindor = gryffindor_df.iloc[:, :len(gryffindor_df.columns)-1]
+    y_gryffindor = gryffindor_df.iloc[:, len(gryffindor_df.columns)-1:]
+    X_hufflepuff = hufflepuff_df.iloc[:, :len(hufflepuff_df.columns)-1]
+    y_hufflepuff = hufflepuff_df.iloc[:, len(hufflepuff_df.columns)-1:]
     alpha = 0.3
     lambda_ = 1
     nb_iterations = 150
-    return (executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iterations))
+    return (executeGradientDescentAlgo(X_slytherin, y_slytherin, 
+                                       X_ravenclaw, y_ravenclaw, 
+                                       X_gryffindor, y_gryffindor, 
+                                       X_hufflepuff, y_hufflepuff,
+                                       alpha, lambda_, nb_iterations))
 
 
 def plot_algo_convergence(result_sly, result_rav, result_gryf, result_huf):
@@ -163,7 +233,7 @@ def main():
         params.loc["Ravenclaw", "b"] = b_rav
         params.loc["Gryffindor", "b"] = b_gryf
         params.loc["Hufflepuff", "b"] = b_huf
-        params.to_csv("params.csv", index=False)
+        params.to_csv("params.csv", index=True)
         print(params)
         return 0
     except AssertionError as msg:
