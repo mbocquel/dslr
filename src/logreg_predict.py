@@ -13,7 +13,6 @@ def calc_proba(valuesN, w, b):
 
 def normalize_value(df_test, df_result):
 	test_N = df_test.copy()
-
 	for i in range(len(df_test.columns)):
 		mean = df_result.loc["Mean", df_test.columns[i]]
 		std = df_result.loc["Std", df_test.columns[i]]
