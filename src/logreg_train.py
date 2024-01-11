@@ -5,7 +5,7 @@ from tqdm import tqdm
 from sys import argv
 
 
-def describe(df):
+def describe_light(df):
     """
     Program that describe a dataset.
     """
@@ -26,7 +26,7 @@ def describe(df):
 
 def normalize_value(df):
     dfNum = df.select_dtypes(include=['int64','float64'])
-    stats = describe(dfNum)
+    stats = describe_light(dfNum)
     dfN = df.copy()
     for i in range(len(dfNum.columns)):
         mean = stats.loc["Mean", dfNum.columns[i]]
@@ -185,27 +185,50 @@ def logreg(df, alpha, lambda_, nb_iterations):
     return (executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iterations))
 
 
+def processInputs():
+    datasetPath = ""
+    alpha = 0.5
+    lambda_ = 0.0
+    nb_iter = 250
+    try:
+        if (len(argv) >= 2):
+            datasetPath = argv[1]
+        if (len(argv) >= 3):
+            alpha = float(argv[2])
+        if (len(argv) >= 4):
+            lambda_ = float(argv[3])
+        if (len(argv) == 5):
+            nb_iter = int(argv[4])
+        return (datasetPath, alpha, lambda_, nb_iter)
+    except Exception:
+        return (None, None, None, None)
+
+
 def main():
     try:
-        assert len(argv) == 2, "You need to pass your data file as argument"
-        df = pd.read_csv(argv[1], index_col = "Index")
+        assert len(argv) >= 2, "Not enough arguments. \nHelp : datasetfile alpha lambda nb_iteration"
+        assert len(argv) <= 5 , "Too many arguments"
+        datasetPath, alpha, lambda_, nb_iter = processInputs()
+        assert datasetPath is not None, "Please enter valid arguments"
+        df = pd.read_csv(datasetPath, index_col = "Index")
         assert df is not None, "There is a problem with the dataset..."
-        df_bis = df.drop(['First Name', 'Last Name', "Birthday", "Best Hand"], axis=1, inplace=False)
-        
-        # On supprime les features non pertinentes
-        df_bis.drop("Astronomy", axis=1, inplace=True)
-        df_bis.drop("Arithmancy", axis=1, inplace=True)
-        df_bis.drop("Care of Magical Creatures", axis=1, inplace=True)
-        stats = describe(df_bis)
 
-        ## on Normalise les donnees
-        df_Normilised = normalize_value(df_bis)
-
-        # On execute le resultat de l'algo
-        print("Computing ...")
-        w, b, result = logreg(df_Normilised, 0.1, 1, 200)
+        #Delete useless colums
+        col_to_delete = ["First Name", "Last Name", "Birthday", "Best Hand", "Astronomy",
+                         "Arithmancy", "Care of Magical Creatures"]
+        df.drop(col_to_delete, axis=1, inplace=True)
         
-        # Enregistrement
+        #Savings the mean and std for Normalisation
+        stats = describe_light(df)
+
+        #Normalising the data
+        df_Normilised = normalize_value(df)
+
+        #Launching the algo
+        print("Computing with alpha = " + str(alpha) + " lambda_ = " + str(lambda_) + " with " + str(nb_iter) + " iterations" )
+        w, b, result = logreg(df_Normilised, alpha, lambda_, nb_iter)
+        
+        #Saving the results
         params = stats.copy()
         params.loc["Slytherin", :] = w[0]
         params.loc["Ravenclaw", :] = w[1]
@@ -216,13 +239,9 @@ def main():
         params.loc["Gryffindor", "b"] = b[2]
         params.loc["Hufflepuff", "b"] = b[3]
         params.to_csv("params.csv", index=True)
-        return 0
-    except AssertionError as msg:
-        print("AssertionError:", msg)
-        return 1
+        print("Results saves in params.csv")
     except Exception as err:
         print("Error: ", err)
-        return 1
 
 if __name__ == "__main__":
     main()
