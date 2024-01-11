@@ -35,9 +35,10 @@ def create_house_sheet(df_array):
 	print(nameHouses)
 	df_array["Hogwarts House"] = nameHouses
 	df_finals = pd.DataFrame(df_array.iloc[:, -1:])
-	df_array.to_csv("result.csv")
-	df_finals.to_csv("houses.csv")
+	# df_array.to_csv("result.csv")
+	# df_finals.to_csv("houses.csv")
 	print(df_array)
+	return df_array, df_finals
 
 def main():
 	# try:
@@ -50,7 +51,9 @@ def main():
 		for i in range(len(X_toTest.columns)):
 			X_toTest.loc[X_toTest.iloc[:,i].isna(), X_toTest.columns[i]] = df_result.loc["Mean", X_toTest.columns[i]]
 		prob_array = create_prob_arr(X_toTest, df_result)
-		create_house_sheet(prob_array)
+		df_array, df_finals = create_house_sheet(prob_array)
+		df_finals.to_csv("houses.csv")
+		df_array.to_csv("result.csv")
 
 	# except Exception as e:
 	# 	print(f'caught {type(e)}: e')
