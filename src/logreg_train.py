@@ -57,11 +57,11 @@ def computeCost(X, y, w, b, lambda_ = 1):
         z_slytherin = np.dot(w_slytherin, X.iloc[i].values) + b_slytherin
         f_wb_slytherin = 1 / (1 + np.exp(-z_slytherin))
         cost_slytherin += -y_slytherin[i] * np.log(f_wb_slytherin) - (1 - y_slytherin[i])*np.log(1-f_wb_slytherin)
-        
+
         z_ravenclaw = np.dot(w_ravenclaw, X.iloc[i].values) + b_ravenclaw
         f_wb_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
         cost_ravenclaw += -y_ravenclaw[i] * np.log(f_wb_ravenclaw) - (1 - y_ravenclaw[i])*np.log(1-f_wb_ravenclaw)
-        
+
         z_gryffindor = np.dot(w_gryffindor, X.iloc[i].values) + b_gryffindor
         f_wb_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
         cost_gryffindor += -y_gryffindor[i] * np.log(f_wb_gryffindor) - (1 - y_gryffindor[i])*np.log(1-f_wb_gryffindor)
@@ -69,7 +69,7 @@ def computeCost(X, y, w, b, lambda_ = 1):
         z_hufflepuff = np.dot(w_hufflepuff, X.iloc[i].values) + b_hufflepuff
         f_wb_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
         cost_hufflepuff += -y_hufflepuff[i] * np.log(f_wb_hufflepuff) - (1 - y_hufflepuff[i])*np.log(1-f_wb_hufflepuff)
-    
+
     cost_slytherin = cost_slytherin / m
     cost_ravenclaw = cost_ravenclaw / m
     cost_gryffindor = cost_gryffindor / m
@@ -109,7 +109,7 @@ def updateWb(X, y, w, b, lambda_, alpha):
         z_ravenclaw = np.dot(X.iloc[i].values, w_ravenclaw) + b_ravenclaw
         f_wb_i_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
         err_i_ravenclaw  = f_wb_i_ravenclaw  - y_ravenclaw[i]
-        
+
         z_gryffindor = np.dot(X.iloc[i].values, w_gryffindor) + b_gryffindor
         f_wb_i_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
         err_i_gryffindor  = f_wb_i_gryffindor  - y_gryffindor[i]
@@ -123,12 +123,12 @@ def updateWb(X, y, w, b, lambda_, alpha):
             dj_dw[1][j] = dj_dw[1][j] + err_i_ravenclaw * X.iloc[i,j].item()
             dj_dw[2][j] = dj_dw[2][j] + err_i_gryffindor * X.iloc[i,j].item()
             dj_dw[3][j] = dj_dw[3][j] + err_i_hufflepuff * X.iloc[i,j].item()
-        
+
         dj_db[0] = dj_db[0] + err_i_slytherin
         dj_db[1] = dj_db[1] + err_i_ravenclaw
         dj_db[2] = dj_db[2] + err_i_gryffindor
         dj_db[3] = dj_db[3] + err_i_hufflepuff
-        
+
     dj_dw =  dj_dw/m
     dj_db = dj_db/m
 
@@ -137,7 +137,7 @@ def updateWb(X, y, w, b, lambda_, alpha):
         dj_dw[1][j] = dj_dw[1][j] + (lambda_/m) * w_ravenclaw[j]
         dj_dw[2][j] = dj_dw[2][j] + (lambda_/m) * w_gryffindor[j]
         dj_dw[3][j] = dj_dw[3][j] + (lambda_/m) * w_hufflepuff[j]
-    
+
     W_updated = w - alpha * dj_dw
     b_updated = b - alpha * dj_db
     return (W_updated, b_updated)
@@ -179,8 +179,8 @@ def logreg(df, alpha, lambda_, nb_iterations):
 
     X = slytherin_df.iloc[:, :len(slytherin_df.columns)-1]
     y = np.array([slytherin_df.iloc[:, len(slytherin_df.columns)-1:].to_numpy()[:, 0],
-         ravenclaw_df.iloc[:, len(ravenclaw_df.columns)-1:].to_numpy()[:, 0], 
-         gryffindor_df.iloc[:, len(gryffindor_df.columns)-1:].to_numpy()[:, 0], 
+         ravenclaw_df.iloc[:, len(ravenclaw_df.columns)-1:].to_numpy()[:, 0],
+         gryffindor_df.iloc[:, len(gryffindor_df.columns)-1:].to_numpy()[:, 0],
          hufflepuff_df.iloc[:, len(hufflepuff_df.columns)-1:].to_numpy()[:, 0]])
     return (executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iterations))
 
@@ -217,7 +217,7 @@ def main():
         col_to_delete = ["First Name", "Last Name", "Birthday", "Best Hand", "Astronomy",
                          "Arithmancy", "Care of Magical Creatures"]
         df.drop(col_to_delete, axis=1, inplace=True)
-        
+
         #Savings the mean and std for Normalisation
         stats = describe_light(df)
 
@@ -227,7 +227,7 @@ def main():
         #Launching the algo
         print("Computing with alpha = " + str(alpha) + " lambda_ = " + str(lambda_) + " with " + str(nb_iter) + " iterations" )
         w, b, result = logreg(df_Normilised, alpha, lambda_, nb_iter)
-        
+
         #Saving the results
         params = stats.copy()
         params.loc["Slytherin", :] = w[0]
