@@ -106,6 +106,7 @@ def updateWb(X, y, w, b, lambda_, alpha):
     return (W_updated, b_updated)
 
 def executeGradientDescentAlgo(X, y, nb_iterations, lambda_, alpha):
+
     m, n = X.shape
     w = np.array([np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)])
     b = np.zeros(4)
@@ -174,5 +175,6 @@ def main():
     params.loc["Gryffindor", "b"] = b[2]
     params.loc["Hufflepuff", "b"] = b[3]
     params.to_csv("paramsStochaostic.csv", index=True)
+
 if (__name__ == "__main__"):
     main()
