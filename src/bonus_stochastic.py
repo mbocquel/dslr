@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from sys import argv
-from logreg_train import describe, normalize_value
+from logreg_train import describe_light, normalize_value
 
 
 def computeCost(X, y, w, b, lambda_ = 1):
@@ -16,8 +16,7 @@ def computeCost(X, y, w, b, lambda_ = 1):
     Returns:
         cost (scalar):  cost
     """
-    n = len(X)
-    m = 1
+    m, n = X.shape
     y_slytherin, y_ravenclaw, y_gryffindor, y_hufflepuff = y
     w_slytherin, w_ravenclaw, w_gryffindor, w_hufflepuff = w
     b_slytherin, b_ravenclaw, b_gryffindor, b_hufflepuff = b
@@ -25,21 +24,27 @@ def computeCost(X, y, w, b, lambda_ = 1):
     cost_ravenclaw = 0
     cost_gryffindor = 0
     cost_hufflepuff = 0
-    z_slytherin = np.dot(w_slytherin, X) + b_slytherin
-    f_wb_slytherin = 1 / (1 + np.exp(-z_slytherin))
-    cost_slytherin += -y_slytherin * np.log(f_wb_slytherin) - (1 - y_slytherin)*np.log(1-f_wb_slytherin)
+    for i in range(m):
+        z_slytherin = np.dot(w_slytherin, X.iloc[i].values) + b_slytherin
+        f_wb_slytherin = 1 / (1 + np.exp(-z_slytherin))
+        cost_slytherin += -y_slytherin[i] * np.log(f_wb_slytherin) - (1 - y_slytherin[i])*np.log(1-f_wb_slytherin)
 
-    z_ravenclaw = np.dot(w_ravenclaw, X) + b_ravenclaw
-    f_wb_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
-    cost_ravenclaw += -y_ravenclaw * np.log(f_wb_ravenclaw) - (1 - y_ravenclaw)*np.log(1-f_wb_ravenclaw)
+        z_ravenclaw = np.dot(w_ravenclaw, X.iloc[i].values) + b_ravenclaw
+        f_wb_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
+        cost_ravenclaw += -y_ravenclaw[i] * np.log(f_wb_ravenclaw) - (1 - y_ravenclaw[i])*np.log(1-f_wb_ravenclaw)
 
-    z_gryffindor = np.dot(w_gryffindor, X) + b_gryffindor
-    f_wb_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
-    cost_gryffindor += -y_gryffindor * np.log(f_wb_gryffindor) - (1 - y_gryffindor)*np.log(1-f_wb_gryffindor)
+        z_gryffindor = np.dot(w_gryffindor, X.iloc[i].values) + b_gryffindor
+        f_wb_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
+        cost_gryffindor += -y_gryffindor[i] * np.log(f_wb_gryffindor) - (1 - y_gryffindor[i])*np.log(1-f_wb_gryffindor)
 
-    z_hufflepuff = np.dot(w_hufflepuff, X) + b_hufflepuff
-    f_wb_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
-    cost_hufflepuff += -y_hufflepuff * np.log(f_wb_hufflepuff) - (1 - y_hufflepuff)*np.log(1-f_wb_hufflepuff)
+        z_hufflepuff = np.dot(w_hufflepuff, X.iloc[i].values) + b_hufflepuff
+        f_wb_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
+        cost_hufflepuff += -y_hufflepuff[i] * np.log(f_wb_hufflepuff) - (1 - y_hufflepuff[i])*np.log(1-f_wb_hufflepuff)
+
+    cost_slytherin = cost_slytherin / m
+    cost_ravenclaw = cost_ravenclaw / m
+    cost_gryffindor = cost_gryffindor / m
+    cost_hufflepuff = cost_hufflepuff / m
 
     reg_part_slytherin = 0
     reg_part_ravenclaw = 0
@@ -118,7 +123,7 @@ def executeGradientDescentAlgo(X, y, nb_iterations, lambda_, alpha):
         X_i = X.iloc[random_index, :].values
         y_i = np.array([y[0][random_index], y[1][random_index], y[2][random_index], y[3][random_index]])
         w, b = updateWb(X_i, y_i, w, b, lambda_, alpha)
-        result[0][k],result[1][k], result[2][k], result[3][k] = (computeCost(X_i, y_i, w, b, lambda_))
+        result[0][k],result[1][k], result[2][k], result[3][k] = (computeCost(X, y, w, b, lambda_))
         k += 1
     return (w, b, result)
 
@@ -153,28 +158,64 @@ def logreg_stochastic(df_Normilised, alpha, lambda_, nb_iterations):
     return (executeGradientDescentAlgo(X, y,nb_iterations,  lambda_, alpha))
 
 
+def processInputs():
+    datasetPath = ""
+    alpha = 0.5
+    lambda_ = 0.0
+    nb_iter = 250
+    try:
+        if (len(argv) >= 2):
+            datasetPath = argv[1]
+        if (len(argv) >= 3):
+            alpha = float(argv[2])
+        if (len(argv) >= 4):
+            lambda_ = float(argv[3])
+        if (len(argv) == 5):
+            nb_iter = int(argv[4])
+        return (datasetPath, alpha, lambda_, nb_iter)
+    except Exception:
+        return (None, None, None, None)
+
+
 def main():
-    df = pd.read_csv("../datasets/dataset_train.csv", index_col = "Index")
-    df_bis = df.drop(['First Name', 'Last Name', "Birthday", "Best Hand"], axis=1, inplace=False)
-    df_bis.drop("Astronomy", axis=1, inplace=True)
-    df_bis.drop("Arithmancy", axis=1, inplace=True)
-    df_bis.drop("Care of Magical Creatures", axis=1, inplace=True)
-    stats = describe(df_bis)
-    df_Normilised = normalize_value(df_bis)
-    alpha = 0.1
-    lambda_ = 0.1
-    nb_iterations = 200
-    w, b, result= logreg_stochastic(df_Normilised, alpha, lambda_, nb_iterations)
-    params = stats.copy()
-    params.loc["Slytherin", :] = w[0]
-    params.loc["Ravenclaw", :] = w[1]
-    params.loc["Gryffindor", :] = w[2]
-    params.loc["Hufflepuff", :] = w[3]
-    params.loc["Slytherin", "b"] = b[0]
-    params.loc["Ravenclaw", "b"] = b[1]
-    params.loc["Gryffindor", "b"] = b[2]
-    params.loc["Hufflepuff", "b"] = b[3]
-    params.to_csv("paramsStochaostic.csv", index=True)
+    try:
+        assert len(argv) >= 2, "Not enough arguments. \nHelp : datasetfile alpha lambda nb_iteration"
+        assert len(argv) <= 5 , "Too many arguments"
+        datasetPath, alpha, lambda_, nb_iter = processInputs()
+        assert datasetPath is not None, "Please enter valid arguments"
+        df = pd.read_csv(datasetPath, index_col = "Index")
+        assert df is not None, "There is a problem with the dataset..."
+
+        #Delete useless colums
+        col_to_delete = ["First Name", "Last Name", "Birthday", "Best Hand", "Astronomy",
+                         "Arithmancy", "Care of Magical Creatures"]
+        df.drop(col_to_delete, axis=1, inplace=True)
+
+        #Savings the mean and std for Normalisation
+        stats = describe_light(df)
+
+        #Normalising the data
+        df_Normilised = normalize_value(df)
+
+        #Launching the algo
+        print("Computing with alpha = " + str(alpha) + " lambda_ = " + str(lambda_) + " with " + str(nb_iter) + " iterations" )
+        w, b, result = logreg_stochastic(df_Normilised, alpha, lambda_, nb_iter)
+
+        #Saving the results
+        params = stats.copy()
+        params.loc["Slytherin", :] = w[0]
+        params.loc["Ravenclaw", :] = w[1]
+        params.loc["Gryffindor", :] = w[2]
+        params.loc["Hufflepuff", :] = w[3]
+        params.loc["Slytherin", "b"] = b[0]
+        params.loc["Ravenclaw", "b"] = b[1]
+        params.loc["Gryffindor", "b"] = b[2]
+        params.loc["Hufflepuff", "b"] = b[3]
+        params.to_csv("params_stochastic.csv", index=True)
+        print("Results saves in params_stochastic.csv")
+    except Exception as err:
+        print("Error: ", err)
+
 
 if (__name__ == "__main__"):
     main()
