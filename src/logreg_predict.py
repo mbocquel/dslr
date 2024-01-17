@@ -2,18 +2,15 @@ from sys import argv
 import pandas as pd
 import numpy as np
 
+
 def calc_proba(valuesN, w, b):
-	m, n = valuesN.shape
-	proba = np.zeros(m)
-	for i in range(m):
-		z = np.dot(w, valuesN.iloc[i].values) + b
-		proba[i] = 1 / (1 + np.exp(-z))
-	return proba
+    Z = np.dot(valuesN, w) + b
+    proba = 1 / (1 + np.exp(-Z))
+    return proba
 
 
 def normalize_value(df_test, df_result):
 	test_N = df_test.copy()
-
 	for i in range(len(df_test.columns)):
 		mean = df_result.loc["Mean", df_test.columns[i]]
 		std = df_result.loc["Std", df_test.columns[i]]

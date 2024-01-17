@@ -3,112 +3,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from sys import argv
-from logreg_train import describe_light, normalize_value
-
-
-def computeCost(X, y, w, b, lambda_ = 1):
-    """
-    X (ndarray (m,n): Data, m examples with n features
-    y (ndarray (m,)): target values
-    w (ndarray (n,)): model parameters
-    b (scalar)      : model parameter
-    lambda_ (scalar): Controls amount of regularization
-    Returns:
-        cost (scalar):  cost
-    """
-    m, n = X.shape
-    y_slytherin, y_ravenclaw, y_gryffindor, y_hufflepuff = y
-    w_slytherin, w_ravenclaw, w_gryffindor, w_hufflepuff = w
-    b_slytherin, b_ravenclaw, b_gryffindor, b_hufflepuff = b
-    cost_slytherin = 0
-    cost_ravenclaw = 0
-    cost_gryffindor = 0
-    cost_hufflepuff = 0
-    for i in range(m):
-        z_slytherin = np.dot(w_slytherin, X.iloc[i].values) + b_slytherin
-        f_wb_slytherin = 1 / (1 + np.exp(-z_slytherin))
-        cost_slytherin += -y_slytherin[i] * np.log(f_wb_slytherin) - (1 - y_slytherin[i])*np.log(1-f_wb_slytherin)
-
-        z_ravenclaw = np.dot(w_ravenclaw, X.iloc[i].values) + b_ravenclaw
-        f_wb_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
-        cost_ravenclaw += -y_ravenclaw[i] * np.log(f_wb_ravenclaw) - (1 - y_ravenclaw[i])*np.log(1-f_wb_ravenclaw)
-
-        z_gryffindor = np.dot(w_gryffindor, X.iloc[i].values) + b_gryffindor
-        f_wb_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
-        cost_gryffindor += -y_gryffindor[i] * np.log(f_wb_gryffindor) - (1 - y_gryffindor[i])*np.log(1-f_wb_gryffindor)
-
-        z_hufflepuff = np.dot(w_hufflepuff, X.iloc[i].values) + b_hufflepuff
-        f_wb_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
-        cost_hufflepuff += -y_hufflepuff[i] * np.log(f_wb_hufflepuff) - (1 - y_hufflepuff[i])*np.log(1-f_wb_hufflepuff)
-
-    cost_slytherin = cost_slytherin / m
-    cost_ravenclaw = cost_ravenclaw / m
-    cost_gryffindor = cost_gryffindor / m
-    cost_hufflepuff = cost_hufflepuff / m
-
-    reg_part_slytherin = 0
-    reg_part_ravenclaw = 0
-    reg_part_gryffindor = 0
-    reg_part_hufflepuff = 0
-
-    for i in range(n):
-        reg_part_slytherin += w_slytherin[i]**2
-        reg_part_ravenclaw += w_ravenclaw[i]**2
-        reg_part_gryffindor += w_gryffindor[i]**2
-        reg_part_hufflepuff += w_hufflepuff[i]**2
-
-    cost_slytherin = cost_slytherin + (lambda_ / (2*m)) * reg_part_slytherin
-    cost_ravenclaw = cost_ravenclaw + (lambda_ / (2*m)) * reg_part_ravenclaw
-    cost_gryffindor = cost_gryffindor + (lambda_ / (2*m)) * reg_part_gryffindor
-    cost_hufflepuff = cost_hufflepuff + (lambda_ / (2*m)) * reg_part_hufflepuff
-
-    return (cost_slytherin, cost_ravenclaw, cost_gryffindor, cost_hufflepuff)
-
+from logreg_train import describe_light, normalize_value, computeCost
 
 def updateWb(X, y, w, b, lambda_, alpha):
     n = len(X)
-    m = 1
-    dj_dw = np.array([np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)])
+    dj_dw = np.zeros((4, n))
     dj_db = np.zeros(4)
-    y_slytherin, y_ravenclaw, y_gryffindor, y_hufflepuff = y
-    w_slytherin, w_ravenclaw, w_gryffindor, w_hufflepuff = w
-    b_slytherin, b_ravenclaw, b_gryffindor, b_hufflepuff = b
-    z_slytherin = np.dot(X, w_slytherin) + b_slytherin
-    f_wb_i_slytherin = 1 / (1 + np.exp(-z_slytherin))
-    err_i_slytherin  = f_wb_i_slytherin  - y_slytherin
 
-    z_ravenclaw = np.dot(X, w_ravenclaw) + b_ravenclaw
-    f_wb_i_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
-    err_i_ravenclaw  = f_wb_i_ravenclaw  - y_ravenclaw
+    for i in range(4):  # Pour chaque classe
+        z = np.dot(X, w[i]) + b[i]
+        f_wb_i = 1 / (1 + np.exp(-z))
+        err_i = f_wb_i - y[i]
 
-    z_gryffindor = np.dot(X, w_gryffindor) + b_gryffindor
-    f_wb_i_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
-    err_i_gryffindor  = f_wb_i_gryffindor  - y_gryffindor
+        dj_dw[i] = np.dot(err_i, X)
+        dj_db[i] = np.sum(err_i)
 
-    z_hufflepuff = np.dot(X, w_hufflepuff) + b_hufflepuff
-    f_wb_i_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
-    err_i_hufflepuff = f_wb_i_hufflepuff  - y_hufflepuff
-    for j in range(n):
-        dj_dw[0][j] = dj_dw[0][j] + err_i_slytherin * X[j]
-        dj_dw[1][j] = dj_dw[1][j] + err_i_ravenclaw * X[j]
-        dj_dw[2][j] = dj_dw[2][j] + err_i_gryffindor * X[j]
-        dj_dw[3][j] = dj_dw[3][j] + err_i_hufflepuff * X[j]
-        dj_db[0] = dj_db[0] + err_i_slytherin
-        dj_db[1] = dj_db[1] + err_i_ravenclaw
-        dj_db[2] = dj_db[2] + err_i_gryffindor
-        dj_db[3] = dj_db[3] + err_i_hufflepuff
-    dj_dw =  dj_dw/m
-    dj_db = dj_db/m
+        # Ajout de la régularisation
+        dj_dw[i] += (lambda_) * w[i]
 
-    for j in range(n):
-        dj_dw[0][j] = dj_dw[0][j] + (lambda_/m) * w_slytherin[j]
-        dj_dw[1][j] = dj_dw[1][j] + (lambda_/m) * w_ravenclaw[j]
-        dj_dw[2][j] = dj_dw[2][j] + (lambda_/m) * w_gryffindor[j]
-        dj_dw[3][j] = dj_dw[3][j] + (lambda_/m) * w_hufflepuff[j]
-
-    W_updated = w - alpha * dj_dw
+    # Mise à jour des poids et biais
+    w_updated = w - alpha * dj_dw
     b_updated = b - alpha * dj_db
-    return (W_updated, b_updated)
+    
+    return w_updated, b_updated
 
 def executeGradientDescentAlgo(X, y, nb_iterations, lambda_, alpha):
 
@@ -123,7 +40,8 @@ def executeGradientDescentAlgo(X, y, nb_iterations, lambda_, alpha):
         X_i = X.iloc[random_index, :].values
         y_i = np.array([y[0][random_index], y[1][random_index], y[2][random_index], y[3][random_index]])
         w, b = updateWb(X_i, y_i, w, b, lambda_, alpha)
-        result[0][k],result[1][k], result[2][k], result[3][k] = (computeCost(X, y, w, b, lambda_))
+        for j in range(4):
+            result[j][k] = computeCost(X, y[j], w[j], b[j], lambda_)
         k += 1
     return (w, b, result)
 

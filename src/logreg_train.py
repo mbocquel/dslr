@@ -46,101 +46,33 @@ def computeCost(X, y, w, b, lambda_ = 1):
         cost (scalar):  cost
     """
     m, n = X.shape
-    y_slytherin, y_ravenclaw, y_gryffindor, y_hufflepuff = y
-    w_slytherin, w_ravenclaw, w_gryffindor, w_hufflepuff = w
-    b_slytherin, b_ravenclaw, b_gryffindor, b_hufflepuff = b
-    cost_slytherin = 0
-    cost_ravenclaw = 0
-    cost_gryffindor = 0
-    cost_hufflepuff = 0
-    for i in range(m):
-        z_slytherin = np.dot(w_slytherin, X.iloc[i].values) + b_slytherin
-        f_wb_slytherin = 1 / (1 + np.exp(-z_slytherin))
-        cost_slytherin += -y_slytherin[i] * np.log(f_wb_slytherin) - (1 - y_slytherin[i])*np.log(1-f_wb_slytherin)
-
-        z_ravenclaw = np.dot(w_ravenclaw, X.iloc[i].values) + b_ravenclaw
-        f_wb_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
-        cost_ravenclaw += -y_ravenclaw[i] * np.log(f_wb_ravenclaw) - (1 - y_ravenclaw[i])*np.log(1-f_wb_ravenclaw)
-
-        z_gryffindor = np.dot(w_gryffindor, X.iloc[i].values) + b_gryffindor
-        f_wb_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
-        cost_gryffindor += -y_gryffindor[i] * np.log(f_wb_gryffindor) - (1 - y_gryffindor[i])*np.log(1-f_wb_gryffindor)
-
-        z_hufflepuff = np.dot(w_hufflepuff, X.iloc[i].values) + b_hufflepuff
-        f_wb_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
-        cost_hufflepuff += -y_hufflepuff[i] * np.log(f_wb_hufflepuff) - (1 - y_hufflepuff[i])*np.log(1-f_wb_hufflepuff)
-
-    cost_slytherin = cost_slytherin / m
-    cost_ravenclaw = cost_ravenclaw / m
-    cost_gryffindor = cost_gryffindor / m
-    cost_hufflepuff = cost_hufflepuff / m
-
-    reg_part_slytherin = 0
-    reg_part_ravenclaw = 0
-    reg_part_gryffindor = 0
-    reg_part_hufflepuff = 0
-
-    for i in range(n):
-        reg_part_slytherin += w_slytherin[i]**2
-        reg_part_ravenclaw += w_ravenclaw[i]**2
-        reg_part_gryffindor += w_gryffindor[i]**2
-        reg_part_hufflepuff += w_hufflepuff[i]**2
-
-    cost_slytherin = cost_slytherin + (lambda_ / (2*m)) * reg_part_slytherin
-    cost_ravenclaw = cost_ravenclaw + (lambda_ / (2*m)) * reg_part_ravenclaw
-    cost_gryffindor = cost_gryffindor + (lambda_ / (2*m)) * reg_part_gryffindor
-    cost_hufflepuff = cost_hufflepuff + (lambda_ / (2*m)) * reg_part_hufflepuff
-
-    return (cost_slytherin, cost_ravenclaw, cost_gryffindor, cost_hufflepuff)
+    Z = X @ w + b
+    F_wb = 1 / (1 + np.exp(-Z))
+    cost = -np.sum(y * np.log(F_wb) + (1 - y) * np.log(1 - F_wb))
+    cost = cost / m + (lambda_ / (2*m)) * np.sum(w**2)
+    return (cost)
 
 
 def updateWb(X, y, w, b, lambda_, alpha):
     m, n = X.shape
-    dj_dw = np.array([np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n)])
-    dj_db = np.zeros(4)
-    y_slytherin, y_ravenclaw, y_gryffindor, y_hufflepuff = y
-    w_slytherin, w_ravenclaw, w_gryffindor, w_hufflepuff = w
-    b_slytherin, b_ravenclaw, b_gryffindor, b_hufflepuff = b
-    for i in range(m):
-        z_slytherin = np.dot(X.iloc[i].values, w_slytherin) + b_slytherin
-        f_wb_i_slytherin = 1 / (1 + np.exp(-z_slytherin))
-        err_i_slytherin  = f_wb_i_slytherin  - y_slytherin[i]
+    dj_dw = np.zeros(n)
+    dj_db = 0.
 
-        z_ravenclaw = np.dot(X.iloc[i].values, w_ravenclaw) + b_ravenclaw
-        f_wb_i_ravenclaw = 1 / (1 + np.exp(-z_ravenclaw))
-        err_i_ravenclaw  = f_wb_i_ravenclaw  - y_ravenclaw[i]
+    Z = np.dot(X.values, w) + b
+    F_wb = 1 / (1 + np.exp(-Z))
+    Err = F_wb - y
 
-        z_gryffindor = np.dot(X.iloc[i].values, w_gryffindor) + b_gryffindor
-        f_wb_i_gryffindor = 1 / (1 + np.exp(-z_gryffindor))
-        err_i_gryffindor  = f_wb_i_gryffindor  - y_gryffindor[i]
+    dj_dw = np.dot(Err.T, X) / m
+    dj_db = np.sum(Err) / m
+    
+    # Ajout de la régularisation
+    dj_dw += (lambda_ / m) * w
 
-        z_hufflepuff = np.dot(X.iloc[i].values, w_hufflepuff) + b_hufflepuff
-        f_wb_i_hufflepuff = 1 / (1 + np.exp(-z_hufflepuff))
-        err_i_hufflepuff = f_wb_i_hufflepuff  - y_hufflepuff[i]
-
-        for j in range(n):
-            dj_dw[0][j] = dj_dw[0][j] + err_i_slytherin * X.iloc[i,j].item()
-            dj_dw[1][j] = dj_dw[1][j] + err_i_ravenclaw * X.iloc[i,j].item()
-            dj_dw[2][j] = dj_dw[2][j] + err_i_gryffindor * X.iloc[i,j].item()
-            dj_dw[3][j] = dj_dw[3][j] + err_i_hufflepuff * X.iloc[i,j].item()
-
-        dj_db[0] = dj_db[0] + err_i_slytherin
-        dj_db[1] = dj_db[1] + err_i_ravenclaw
-        dj_db[2] = dj_db[2] + err_i_gryffindor
-        dj_db[3] = dj_db[3] + err_i_hufflepuff
-
-    dj_dw =  dj_dw/m
-    dj_db = dj_db/m
-
-    for j in range(n):
-        dj_dw[0][j] = dj_dw[0][j] + (lambda_/m) * w_slytherin[j]
-        dj_dw[1][j] = dj_dw[1][j] + (lambda_/m) * w_ravenclaw[j]
-        dj_dw[2][j] = dj_dw[2][j] + (lambda_/m) * w_gryffindor[j]
-        dj_dw[3][j] = dj_dw[3][j] + (lambda_/m) * w_hufflepuff[j]
-
-    W_updated = w - alpha * dj_dw
+    # Mise à jour des poids et biais
+    w_updated = w - alpha * dj_dw
     b_updated = b - alpha * dj_db
-    return (W_updated, b_updated)
+    
+    return w_updated, b_updated
 
 
 def executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iterations):
@@ -149,8 +81,9 @@ def executeGradientDescentAlgo(X, y, alpha, lambda_, nb_iterations):
     b = np.zeros(4)
     result = np.array([np.zeros(nb_iterations), np.zeros(nb_iterations), np.zeros(nb_iterations), np.zeros(nb_iterations)])
     for i in tqdm(range(nb_iterations)):
-        w, b = updateWb(X, y, w, b, lambda_, alpha)
-        result[0][i], result[1][i], result[2][i], result[3][i] = computeCost(X, y, w, b, lambda_)
+        for j in range(4):
+            w[j], b[j] = updateWb(X, y[j], w[j], b[j], lambda_, alpha)
+            result[j][i] = computeCost(X, y[j], w[j], b[j], lambda_)
     return(w, b, result)
 
 
