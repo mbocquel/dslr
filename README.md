@@ -1,7 +1,13 @@
 # dslr
 This project marked my initial encounter with logistic regression. Its objective is to assist Professor McGonagall in sorting Hogwarts students into the school house that best suits them.
 
+[Pierrickjay](https://github.com/Pierrickjay) and I decided to help Professor McGonagall.
+
 Although I may not entirely agree with her approach, Professor McGonagall is convinced that sorting should be based on the students' grades as features. We are utilizing a dataset containing grades of approximately 1600 students.
+
+<p align="center">
+  <img src="goinfre/sorting_hat.jpeg" height="350">
+</p>
 
 ## Data Visualization
 I commenced by visualizing the dataset using histograms and pair plots:
